@@ -6,6 +6,11 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\AsaasPaymentController;
 use App\Http\Controllers\Api\EnrollmentController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\ShoppingCartController;
+use App\Http\Controllers\Api\CourseTrackController;
+use App\Http\Controllers\Api\GuestPaymentController;
 use App\Http\Controllers\PaymentController as MainPaymentController;
 use App\Http\Controllers\PaymentSettingsController;
 use App\Http\Controllers\WebhookController;
@@ -33,6 +38,29 @@ Route::prefix('auth')->group(function () {
 Route::get('courses', [CourseController::class, 'index']);
 Route::get('courses/{course}', [CourseController::class, 'show']);
 
+// Rotas públicas de categorias
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('categories/{category}', [CategoryController::class, 'show']);
+Route::get('categories/{category}/courses', [CategoryController::class, 'courses']);
+
+// Rotas públicas do carrinho (para convidados)
+Route::prefix('cart')->group(function () {
+    Route::get('/', [ShoppingCartController::class, 'index']);
+    Route::post('/', [ShoppingCartController::class, 'store']);
+    Route::delete('{id}', [ShoppingCartController::class, 'destroy']);
+    Route::delete('/', [ShoppingCartController::class, 'clear']);
+    Route::post('apply-coupon', [ShoppingCartController::class, 'applyCoupon']);
+});
+
+// Validação pública de cupons
+Route::post('coupons/validate', [CouponController::class, 'validate']);
+
+// Pagamento de convidados (sem autenticação)
+Route::prefix('guest')->group(function () {
+    Route::get('cart/summary', [GuestPaymentController::class, 'getCartSummary']);
+    Route::post('payment/process', [GuestPaymentController::class, 'processPayment']);
+});
+
 // Rotas autenticadas
 Route::middleware('auth:sanctum')->group(function () {
     // Autenticação
@@ -47,6 +75,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index']);
     Route::get('dashboard/admin', [DashboardController::class, 'adminDashboard']);
     Route::get('dashboard/student', [DashboardController::class, 'studentDashboard']);
+
+    // Carrinho autenticado
+    Route::prefix('cart')->group(function () {
+        Route::post('transfer', [ShoppingCartController::class, 'transferCart']);
+    });
+
+    // Cupons (admin)
+    Route::apiResource('coupons', CouponController::class);
+    Route::post('coupons/{coupon}/apply', [CouponController::class, 'apply']);
+
+    // Course Tracks
+    Route::apiResource('course-tracks', CourseTrackController::class);
 
     // Cursos (operações administrativas)
     Route::post('courses', [CourseController::class, 'store']);
@@ -133,6 +173,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('courses/{course}', [CourseController::class, 'update']);
         Route::delete('courses/{course}', [CourseController::class, 'destroy']);
         Route::get('courses/{course}/students', [CourseController::class, 'getCourseStudents']);
+        
+        // Categorias
+        Route::apiResource('categories', CategoryController::class);
+        
+        // Cupons
+        Route::get('coupons', [CouponController::class, 'index']);
+        Route::post('coupons', [CouponController::class, 'store']);
+        Route::put('coupons/{coupon}', [CouponController::class, 'update']);
+        Route::delete('coupons/{coupon}', [CouponController::class, 'destroy']);
+        
+        // Course Tracks
+        Route::get('course-tracks', [CourseTrackController::class, 'index']);
+        Route::post('course-tracks', [CourseTrackController::class, 'store']);
+        Route::put('course-tracks/{courseTrack}', [CourseTrackController::class, 'update']);
+        Route::delete('course-tracks/{courseTrack}', [CourseTrackController::class, 'destroy']);
         
         // Matrículas
         Route::get('enrollments', [EnrollmentController::class, 'index']);

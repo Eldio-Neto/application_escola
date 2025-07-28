@@ -14,9 +14,28 @@ class CoursesSeeder extends Seeder
     {
         $courses = [
             [
+                'category_id' => 1, // Desenvolvimento Web
                 'name' => 'Laravel Avançado',
                 'description' => 'Aprenda Laravel do básico ao avançado com projetos práticos e as melhores práticas de desenvolvimento.',
                 'price' => 299.90,
+                'workload_hours' => 40,
+                'modules' => [
+                    [
+                        'title' => 'Fundamentos do Laravel',
+                        'description' => 'Conceitos básicos, instalação e configuração',
+                        'order' => 1
+                    ],
+                    [
+                        'title' => 'Eloquent ORM e Migrations',
+                        'description' => 'Trabalhando com banco de dados',
+                        'order' => 2
+                    ],
+                    [
+                        'title' => 'API REST e Autenticação',
+                        'description' => 'Criando APIs seguras e escaláveis',
+                        'order' => 3
+                    ]
+                ],
                 'active' => true,
                 'sessions' => [
                     [
@@ -43,9 +62,28 @@ class CoursesSeeder extends Seeder
                 ]
             ],
             [
+                'category_id' => 1, // Desenvolvimento Web
                 'name' => 'Vue.js 3 Completo',
                 'description' => 'Domine o Vue.js 3 com Composition API, Pinia, e desenvolvimento de SPAs modernas.',
                 'price' => 249.90,
+                'workload_hours' => 30,
+                'modules' => [
+                    [
+                        'title' => 'Fundamentos do Vue.js 3',
+                        'description' => 'Conceitos básicos e Composition API',
+                        'order' => 1
+                    ],
+                    [
+                        'title' => 'Componentes e Reatividade',
+                        'description' => 'Criando componentes reutilizáveis',
+                        'order' => 2
+                    ],
+                    [
+                        'title' => 'Roteamento e Estado Global',
+                        'description' => 'Vue Router e Pinia para gerenciamento de estado',
+                        'order' => 3
+                    ]
+                ],
                 'active' => true,
                 'sessions' => [
                     [
@@ -65,9 +103,33 @@ class CoursesSeeder extends Seeder
                 ]
             ],
             [
+                'category_id' => 2, // Ciência de Dados
                 'name' => 'Python para Data Science',
                 'description' => 'Aprenda análise de dados e machine learning com Python, pandas, NumPy e scikit-learn.',
                 'price' => 399.90,
+                'workload_hours' => 50,
+                'modules' => [
+                    [
+                        'title' => 'Python Fundamentals',
+                        'description' => 'Sintaxe básica e estruturas de dados',
+                        'order' => 1
+                    ],
+                    [
+                        'title' => 'Pandas e NumPy',
+                        'description' => 'Manipulação e análise de dados',
+                        'order' => 2
+                    ],
+                    [
+                        'title' => 'Machine Learning',
+                        'description' => 'Algoritmos de aprendizado de máquina',
+                        'order' => 3
+                    ],
+                    [
+                        'title' => 'Visualização de Dados',
+                        'description' => 'Matplotlib, Seaborn e Plotly',
+                        'order' => 4
+                    ]
+                ],
                 'active' => true,
                 'sessions' => [
                     [

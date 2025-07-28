@@ -13,6 +13,7 @@ import AdminCoursesView from '@/views/admin/AdminCoursesView.vue'
 import AdminUsersView from '@/views/admin/AdminUsersView.vue'
 import PaymentSettingsView from '@/views/admin/PaymentSettingsView.vue'
 import PaymentView from '@/views/PaymentView.vue'
+import CheckoutView from '@/views/CheckoutView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import EnrollmentsView from '@/views/EnrollmentsView.vue'
 import GetnetTestView from '@/views/GetnetTestView.vue'
@@ -64,6 +65,11 @@ const routes = [
     name: 'enrollments',
     component: EnrollmentsView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/checkout',
+    name: 'checkout',
+    component: CheckoutView
   },
   {
     path: '/payment/:courseId',

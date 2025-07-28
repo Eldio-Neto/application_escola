@@ -11,13 +11,15 @@ class Course extends Model
     use HasFactory;
 
     protected $fillable = [
+        'category_id',
         'name',
         'description',
         'price',
         'workload_hours',
         'modules',
         'image',
-        'active'
+        'active',
+        'track_ids'
     ];
 
     protected $casts = [
@@ -25,9 +27,20 @@ class Course extends Model
         'modules' => 'array',
         'price' => 'decimal:2',
         'active' => 'boolean',
+        'track_ids' => 'array'
     ];
 
     // Relationships
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function tracks()
+    {
+        return $this->belongsToMany(CourseTrack::class, 'course_track_courses');
+    }
+
     public function sessions()
     {
         return $this->hasMany(CourseSession::class);
@@ -46,6 +59,11 @@ class Course extends Model
     public function students()
     {
         return $this->belongsToMany(User::class, 'enrollments')->withPivot('status', 'enrolled_at', 'completed_at');
+    }
+
+    public function cartItems()
+    {
+        return $this->hasMany(ShoppingCart::class);
     }
 
     // Accessors
