@@ -15,6 +15,38 @@
           </router-link>
         </p>
       </div>
+
+      <!-- Credenciais de Teste -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 class="text-sm font-semibold text-blue-900 mb-3">🧪 Credenciais de Teste</h3>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <div class="text-xs text-blue-800">
+              <strong>Admin:</strong> admin@teste.com / 123456
+            </div>
+            <button 
+              @click="fillCredentials('admin@teste.com', '123456')"
+              class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Usar
+            </button>
+          </div>
+          <div class="flex justify-between items-center">
+            <div class="text-xs text-blue-800">
+              <strong>Aluno:</strong> aluno@teste.com / 123456
+            </div>
+            <button 
+              @click="fillCredentials('aluno@teste.com', '123456')"
+              class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Usar
+            </button>
+          </div>
+        </div>
+        <div class="mt-2 text-xs text-blue-700">
+          <strong>Dica:</strong> Clique em "Usar" para preencher automaticamente os campos
+        </div>
+      </div>
       
       <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
         <div v-if="error" class="alert-danger">
@@ -145,12 +177,18 @@ export default {
         console.error('Erro no login:', error)
       }
     }
+
+    const fillCredentials = (email, password) => {
+      form.value.email = email
+      form.value.password = password
+    }
     
     return {
       form,
       loading,
       error,
-      handleLogin
+      handleLogin,
+      fillCredentials
     }
   }
 }

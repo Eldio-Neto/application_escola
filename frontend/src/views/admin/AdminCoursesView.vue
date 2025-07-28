@@ -4,8 +4,20 @@
       <div class="flex justify-between items-center mb-8">
         <div>
           <h1 class="text-3xl font-bold text-gray-900">Gerenciar Cursos</h1>
-          <p class="text-gray-600">Crie, edite e organize seus cursos</p>
-        </div>
+          <p class="text-gray-600">Crie, edite e organize seus cursos<    const formatCurrency = (value) => {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value)
+    }
+
+    const getImageUrl = (imagePath) => {
+      if (!imagePath) return '/placeholder-course.jpg'
+      // Se a imagem já tem o domínio completo, retorna como está
+      if (imagePath.startsWith('http')) return imagePath
+      // Senão, constrói a URL completa
+      return `http://localhost:8000/storage/${imagePath}`
+    }      </div>
         <button
           @click="openCreateModal"
           class="btn-primary flex items-center space-x-2"
@@ -66,6 +78,9 @@
                   Preço
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Carga Horária
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -85,7 +100,7 @@
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-12 w-12">
                       <img 
-                        :src="course.image || '/placeholder-course.jpg'" 
+                        :src="getImageUrl(course.image)" 
                         :alt="course.name"
                         class="h-12 w-12 rounded-lg object-cover"
                       />
@@ -98,6 +113,11 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ formatCurrency(course.price) }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    {{ course.workload_hours ? `${course.workload_hours}h` : '-' }}
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span 
@@ -158,10 +178,10 @@
 
       <!-- Course Form Modal -->
       <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 xl:w-2/3 shadow-lg rounded-md bg-white max-w-6xl max-h-[90vh] overflow-y-auto">
           <div class="mt-3">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-lg font-medium text-gray-900">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-xl font-medium text-gray-900">
                 {{ editingCourse ? 'Editar Curso' : 'Novo Curso' }}
               </h3>
               <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
@@ -171,7 +191,7 @@
               </button>
             </div>
 
-            <form @submit.prevent="saveCourse" class="space-y-4">
+            <form @submit.prevent="saveCourse" class="space-y-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Curso</label>
                 <input
@@ -194,15 +214,48 @@
                 ></textarea>
               </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Preço (R$)</label>
-                <input
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CurrencyInput
                   v-model="courseForm.price"
-                  type="number"
-                  step="0.01"
+                  label="Preço do Curso"
+                  placeholder="0,00"
                   required
-                  class="input"
-                  placeholder="0.00"
+                  :min="0"
+                  help="Valor em reais (R$)"
+                />
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Carga Horária
+                  </label>
+                  <input
+                    v-model="courseForm.workload_hours"
+                    type="number"
+                    min="1"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Ex: 40"
+                  />
+                  <p class="mt-1 text-sm text-gray-500">Carga horária em horas</p>
+                </div>
+              </div>
+
+              <!-- Módulos do Curso -->
+              <ModulesManager
+                v-model="courseForm.modules"
+                title="Módulos do Curso"
+              />
+
+              <div>
+                <DateTimePicker
+                  v-model="courseForm.sessions"
+                  title="Sessões do Curso"
+                  date-title="Sessão"
+                  start-label="Data e Hora de Início"
+                  end-label="Data e Hora de Fim"
+                  :show-title="true"
+                  :show-description="true"
+                  :show-max-participants="true"
+                  :min-dates="1"
                 />
               </div>
 
@@ -229,7 +282,7 @@
                 </label>
               </div>
 
-              <div class="flex justify-end space-x-3 pt-4">
+              <div class="flex justify-end space-x-3 pt-4 border-t">
                 <button
                   type="button"
                   @click="closeModal"
@@ -256,9 +309,17 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { courseService } from '@/services'
+import CurrencyInput from '../../components/CurrencyInput.vue'
+import DateTimePicker from '../../components/DateTimePicker.vue'
+import ModulesManager from '../../components/ModulesManager.vue'
 
 export default {
   name: 'AdminCoursesView',
+  components: {
+    CurrencyInput,
+    DateTimePicker,
+    ModulesManager
+  },
   setup() {
     const loading = ref(true)
     const saving = ref(false)
@@ -274,9 +335,12 @@ export default {
     const courseForm = ref({
       name: '',
       description: '',
-      price: '',
+      price: 0,
+      workload_hours: null,
+      modules: [],
       active: true,
-      image: null
+      image: null,
+      sessions: []
     })
 
     const formatCurrency = (value) => {
@@ -303,9 +367,18 @@ export default {
       courseForm.value = {
         name: '',
         description: '',
-        price: '',
+        price: 0,
+        workload_hours: null,
+        modules: [],
         active: true,
-        image: null
+        image: null,
+        sessions: [{
+          title: '',
+          description: '',
+          start_datetime: '',
+          end_datetime: '',
+          max_participants: null
+        }]
       }
       showModal.value = true
     }
@@ -316,8 +389,25 @@ export default {
         name: course.name,
         description: course.description,
         price: course.price,
+        workload_hours: course.workload_hours,
+        modules: course.modules || [],
         active: course.active,
-        image: null
+        image: null,
+        sessions: course.sessions && course.sessions.length > 0 
+          ? course.sessions.map(session => ({
+              title: session.title,
+              description: session.description,
+              start_datetime: session.start_datetime,
+              end_datetime: session.end_datetime,
+              max_participants: session.max_participants
+            }))
+          : [{
+              title: '',
+              description: '',
+              start_datetime: '',
+              end_datetime: '',
+              max_participants: null
+            }]
       }
       showModal.value = true
     }
@@ -342,9 +432,38 @@ export default {
         formData.append('name', courseForm.value.name)
         formData.append('description', courseForm.value.description)
         formData.append('price', courseForm.value.price)
+        if (courseForm.value.workload_hours) {
+          formData.append('workload_hours', courseForm.value.workload_hours)
+        }
         formData.append('active', courseForm.value.active ? '1' : '0')
         if (courseForm.value.image) {
           formData.append('image', courseForm.value.image)
+        }
+
+        // Adicionar módulos
+        if (courseForm.value.modules && courseForm.value.modules.length > 0) {
+          courseForm.value.modules.forEach((module, index) => {
+            if (module.title) {
+              formData.append(`modules[${index}][title]`, module.title)
+              formData.append(`modules[${index}][description]`, module.description || '')
+              formData.append(`modules[${index}][order]`, module.order || index + 1)
+            }
+          })
+        }
+
+        // Adicionar sessões
+        if (courseForm.value.sessions && courseForm.value.sessions.length > 0) {
+          courseForm.value.sessions.forEach((session, index) => {
+            if (session.title && session.start_datetime && session.end_datetime) {
+              formData.append(`sessions[${index}][title]`, session.title)
+              formData.append(`sessions[${index}][description]`, session.description || '')
+              formData.append(`sessions[${index}][start_datetime]`, session.start_datetime)
+              formData.append(`sessions[${index}][end_datetime]`, session.end_datetime)
+              if (session.max_participants) {
+                formData.append(`sessions[${index}][max_participants]`, session.max_participants)
+              }
+            }
+          })
         }
 
         if (editingCourse.value) {
@@ -357,6 +476,17 @@ export default {
         await loadCourses()
       } catch (error) {
         console.error('Erro ao salvar curso:', error)
+        
+        // Mostrar erro específico para o usuário
+        let errorMessage = 'Erro ao salvar curso'
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message
+        } else if (error.response?.data?.errors) {
+          const errors = Object.values(error.response.data.errors).flat()
+          errorMessage = errors.join(', ')
+        }
+        
+        alert(errorMessage) // Ou use um sistema de notificação mais sofisticado
       } finally {
         saving.value = false
       }
@@ -391,6 +521,7 @@ export default {
       filters,
       courseForm,
       formatCurrency,
+      getImageUrl,
       loadCourses,
       openCreateModal,
       editCourse,

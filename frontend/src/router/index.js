@@ -11,9 +11,12 @@ import DashboardView from '@/views/dashboard/DashboardView.vue'
 import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
 import AdminCoursesView from '@/views/admin/AdminCoursesView.vue'
 import AdminUsersView from '@/views/admin/AdminUsersView.vue'
+import PaymentSettingsView from '@/views/admin/PaymentSettingsView.vue'
+import PaymentView from '@/views/PaymentView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import EnrollmentsView from '@/views/EnrollmentsView.vue'
 import GetnetTestView from '@/views/GetnetTestView.vue'
+import AsaasTestView from '@/views/AsaasTestView.vue'
 
 const routes = [
   {
@@ -63,6 +66,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/payment/:courseId',
+    name: 'payment',
+    component: PaymentView,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/admin',
     name: 'admin-dashboard',
     component: AdminDashboardView,
@@ -87,9 +96,21 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/payment-settings',
+    name: 'admin-payment-settings',
+    component: PaymentSettingsView,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/test/getnet',
     name: 'getnet-test',
     component: GetnetTestView,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/test/asaas',
+    name: 'asaas-test',
+    component: AsaasTestView,
     meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]

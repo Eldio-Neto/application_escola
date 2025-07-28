@@ -202,4 +202,25 @@ class EnrollmentController extends Controller
             'data' => $stats
         ]);
     }
+
+    /**
+     * Atualizar status de uma matrícula (admin)
+     */
+    public function updateStatus(Request $request, Enrollment $enrollment)
+    {
+        $request->validate([
+            'status' => 'required|in:active,completed,cancelled,suspended'
+        ]);
+
+        $enrollment->update([
+            'status' => $request->status,
+            'status_updated_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status da matrícula atualizado com sucesso',
+            'data' => $enrollment->fresh(['user', 'course'])
+        ]);
+    }
 }

@@ -157,6 +157,112 @@ class WebhookController extends Controller
     }
 
     /**
+     * Webhook do Asaas para notificações de pagamento
+     */
+    public function asaasWebhook(Request $request)
+    {
+        Log::info('Webhook Asaas recebido: ' . $request->getContent());
+
+        try {
+            $data = $request->all();
+
+            // Verificar se é uma notificação de cobrança
+            if (!isset($data['payment']['id'])) {
+                Log::warning('Webhook Asaas sem payment ID: ' . json_encode($data));
+                return response()->json(['message' => 'Webhook processado'], 200);
+            }
+
+            $asaasPaymentId = $data['payment']['id'];
+            $status = $data['payment']['status'] ?? null;
+
+            // Buscar pagamento no banco de dados
+            $payment = Payment::where('gateway_payment_id', $asaasPaymentId)
+                             ->where('gateway', 'asaas')
+                             ->first();
+
+            if (!$payment) {
+                Log::warning("Pagamento Asaas não encontrado no banco: {$asaasPaymentId}");
+                return response()->json(['message' => 'Payment not found'], 404);
+            }
+
+            // Atualizar status do pagamento
+            $this->updateAsaasPaymentStatus($payment, $status, $data);
+
+            Log::info("Webhook Asaas processado com sucesso para pagamento: {$asaasPaymentId}");
+
+            return response()->json(['message' => 'Webhook processed successfully'], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao processar webhook Asaas: ' . $e->getMessage());
+            return response()->json(['error' => 'Internal server error'], 500);
+        }
+    }
+
+    /**
+     * Atualizar status do pagamento Asaas
+     */
+    private function updateAsaasPaymentStatus(Payment $payment, $status, $webhookData)
+    {
+        $oldStatus = $payment->status;
+
+        switch ($status) {
+            case 'RECEIVED':
+            case 'CONFIRMED':
+            case 'RECEIVED_IN_CASH':
+            case 'DUNNING_RECEIVED':
+                $payment->status = 'paid';
+                $payment->paid_at = now();
+                
+                // Criar ou ativar matrícula
+                $this->createEnrollment($payment);
+                break;
+
+            case 'PENDING':
+            case 'AWAITING_RISK_ANALYSIS':
+                $payment->status = 'pending';
+                break;
+
+            case 'OVERDUE':
+                $payment->status = 'overdue';
+                break;
+
+            case 'REFUNDED':
+                $payment->status = 'refunded';
+                
+                // Cancelar matrícula
+                $this->cancelEnrollment($payment);
+                break;
+
+            case 'REFUND_REQUESTED':
+                $payment->status = 'refund_requested';
+                break;
+
+            case 'REFUND_IN_PROGRESS':
+                $payment->status = 'refund_in_progress';
+                break;
+
+            case 'CHARGEBACK_REQUESTED':
+            case 'CHARGEBACK_DISPUTE':
+            case 'AWAITING_CHARGEBACK_REVERSAL':
+                $payment->status = 'chargeback';
+                
+                // Cancelar matrícula
+                $this->cancelEnrollment($payment);
+                break;
+
+            default:
+                Log::warning("Status Asaas desconhecido recebido: {$status}");
+                return;
+        }
+
+        // Salvar dados adicionais do webhook
+        $payment->webhook_data = json_encode($webhookData);
+        $payment->save();
+
+        Log::info("Status do pagamento Asaas {$payment->id} atualizado de {$oldStatus} para {$payment->status}");
+    }
+
+    /**
      * Endpoint para testar webhook (desenvolvimento)
      */
     public function testWebhook(Request $request)

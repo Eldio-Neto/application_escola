@@ -8,7 +8,8 @@ use App\Models\CourseSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Intervention\Image\ImageManagerStatic as Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class CourseController extends Controller
 {
@@ -50,12 +51,17 @@ class CourseController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'workload_hours' => 'nullable|integer|min:1',
+            'modules' => 'nullable|array',
+            'modules.*.title' => 'required|string|max:255',
+            'modules.*.description' => 'nullable|string',
+            'modules.*.order' => 'nullable|integer|min:1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'active' => 'boolean',
             'sessions' => 'array',
             'sessions.*.title' => 'required|string|max:255',
             'sessions.*.description' => 'nullable|string',
-            'sessions.*.start_datetime' => 'required|date|after:now',
+            'sessions.*.start_datetime' => 'required|date',
             'sessions.*.end_datetime' => 'required|date|after:sessions.*.start_datetime',
             'sessions.*.max_participants' => 'nullable|integer|min:1',
         ]);
@@ -68,7 +74,7 @@ class CourseController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['name', 'description', 'price', 'active']);
+        $data = $request->only(['name', 'description', 'price', 'workload_hours', 'modules', 'active']);
 
         // Upload da imagem
         if ($request->hasFile('image')) {
@@ -76,12 +82,8 @@ class CourseController extends Controller
             $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
             $path = 'courses/' . $filename;
 
-            // Redimensionar a imagem
-            $imageContent = Image::make($image->getRealPath())
-                ->fit(800, 600)
-                ->encode();
-
-            Storage::put($path, $imageContent);
+            // Salvar a imagem na pasta public
+            Storage::disk('public')->putFileAs('courses', $image, $filename);
             $data['image'] = $path;
         }
 
@@ -127,6 +129,11 @@ class CourseController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'workload_hours' => 'nullable|integer|min:1',
+            'modules' => 'nullable|array',
+            'modules.*.title' => 'required|string|max:255',
+            'modules.*.description' => 'nullable|string',
+            'modules.*.order' => 'nullable|integer|min:1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'active' => 'boolean',
         ]);
@@ -139,25 +146,21 @@ class CourseController extends Controller
             ], 422);
         }
 
-        $data = $request->only(['name', 'description', 'price', 'active']);
+        $data = $request->only(['name', 'description', 'price', 'workload_hours', 'modules', 'active']);
 
         // Upload da imagem
         if ($request->hasFile('image')) {
             // Deletar imagem anterior
             if ($course->image) {
-                Storage::delete($course->image);
+                Storage::disk('public')->delete($course->image);
             }
 
             $image = $request->file('image');
             $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
             $path = 'courses/' . $filename;
 
-            // Redimensionar a imagem
-            $imageContent = Image::make($image->getRealPath())
-                ->fit(800, 600)
-                ->encode();
-
-            Storage::put($path, $imageContent);
+            // Salvar a imagem na pasta public
+            Storage::disk('public')->putFileAs('courses', $image, $filename);
             $data['image'] = $path;
         }
 

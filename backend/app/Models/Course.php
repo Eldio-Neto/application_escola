@@ -14,11 +14,15 @@ class Course extends Model
         'name',
         'description',
         'price',
+        'workload_hours',
+        'modules',
         'image',
-        'active',
+        'active'
     ];
 
     protected $casts = [
+        'workload_hours' => 'integer',
+        'modules' => 'array',
         'price' => 'decimal:2',
         'active' => 'boolean',
     ];

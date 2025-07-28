@@ -42,4 +42,9 @@ return [
         'client_secret' => env('GETNET_CLIENT_SECRET'),
     ],
 
+    'asaas' => [
+        'environment' => env('ASAAS_ENVIRONMENT', 'sandbox'),
+        'api_key' => env('ASAAS_API_KEY'),
+    ],
+
 ];

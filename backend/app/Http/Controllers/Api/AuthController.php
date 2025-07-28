@@ -200,4 +200,62 @@ class AuthController extends Controller
             'data' => $users
         ]);
     }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
+            'cpf' => 'nullable|string|max:14',
+            'user_type' => 'required|in:student,admin,instructor',
+            'is_active' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dados inválidos',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user->update($request->only([
+            'name', 'email', 'phone', 'birth_date', 'cpf', 'user_type', 'is_active'
+        ]));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Usuário atualizado com sucesso',
+            'data' => $user->fresh()
+        ]);
+    }
+
+    public function deleteUser(Request $request, User $user)
+    {
+        // Não permitir que o admin delete a si mesmo
+        if ($user->id === $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Você não pode deletar seu próprio usuário'
+            ], 422);
+        }
+
+        // Verificar se o usuário tem matrículas ativas
+        $activeEnrollments = $user->enrollments()->where('status', 'active')->count();
+        if ($activeEnrollments > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não é possível deletar usuário com matrículas ativas'
+            ], 422);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Usuário deletado com sucesso'
+        ]);
+    }
 }
