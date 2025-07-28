@@ -4,20 +4,8 @@
       <div class="flex justify-between items-center mb-8">
         <div>
           <h1 class="text-3xl font-bold text-gray-900">Gerenciar Cursos</h1>
-          <p class="text-gray-600">Crie, edite e organize seus cursos<    const formatCurrency = (value) => {
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-      }).format(value)
-    }
-
-    const getImageUrl = (imagePath) => {
-      if (!imagePath) return '/placeholder-course.jpg'
-      // Se a imagem já tem o domínio completo, retorna como está
-      if (imagePath.startsWith('http')) return imagePath
-      // Senão, constrói a URL completa
-      return `http://localhost:8000/storage/${imagePath}`
-    }      </div>
+          <p class="text-gray-600">Crie, edite e organize seus cursos</p>
+        </div>
         <button
           @click="openCreateModal"
           class="btn-primary flex items-center space-x-2"
@@ -348,6 +336,14 @@ export default {
         style: 'currency',
         currency: 'BRL'
       }).format(value || 0)
+    }
+
+    const getImageUrl = (imagePath) => {
+      if (!imagePath) return '/placeholder-course.jpg'
+      // Se a imagem já tem o domínio completo, retorna como está
+      if (imagePath.startsWith('http')) return imagePath
+      // Senão, constrói a URL completa
+      return `http://localhost:8000/storage/${imagePath}`
     }
 
     const loadCourses = async () => {
