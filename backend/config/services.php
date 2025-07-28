@@ -45,6 +45,9 @@ return [
     'asaas' => [
         'environment' => env('ASAAS_ENVIRONMENT', 'sandbox'),
         'api_key' => env('ASAAS_API_KEY'),
+        'base_url' => env('ASAAS_ENVIRONMENT', 'sandbox') === 'production' 
+            ? 'https://www.asaas.com/api/v3' 
+            : 'https://sandbox.asaas.com/api/v3',
     ],
 
 ];

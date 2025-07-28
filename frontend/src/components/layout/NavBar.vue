@@ -31,7 +31,10 @@
         </div>
         
         <!-- Menu do usuário -->
-        <div class="hidden sm:ml-6 sm:flex sm:items-center">
+        <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+          <!-- Shopping Cart -->
+          <ShoppingCart />
+          
           <template v-if="isAuthenticated">
             <!-- Menu dropdown do usuário autenticado -->
             <div class="ml-3 relative">
@@ -250,9 +253,13 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import ShoppingCart from '@/components/ShoppingCart.vue'
 
 export default {
   name: 'NavBar',
+  components: {
+    ShoppingCart
+  },
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()

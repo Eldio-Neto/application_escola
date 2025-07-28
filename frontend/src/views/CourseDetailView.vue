@@ -124,11 +124,18 @@
               Voltar
             </button>
             <button
+              @click="addToCart"
+              class="px-8 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
+              :disabled="!course.active || addingToCart"
+            >
+              {{ addingToCart ? 'Adicionando...' : 'Adicionar ao Carrinho' }}
+            </button>
+            <button
               @click="enrollInCourse"
               class="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
               :disabled="!course.active"
             >
-              {{ course.active ? 'Inscrever-se no Curso' : 'Curso Inativo' }}
+              {{ course.active ? 'Comprar Agora' : 'Curso Inativo' }}
             </button>
           </div>
         </div>
@@ -158,12 +165,15 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
+import { useCartStore } from '@/stores/cart'
 
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore()
 
 const loading = ref(true)
 const course = ref(null)
+const addingToCart = ref(false)
 
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -203,9 +213,30 @@ const loadCourse = async () => {
   }
 }
 
+const addToCart = async () => {
+  if (!course.value || addingToCart.value) return
+  
+  try {
+    addingToCart.value = true
+    const result = await cartStore.addItem(course.value.id)
+    
+    if (result.success) {
+      alert('Curso adicionado ao carrinho!')
+    } else {
+      alert(result.message)
+    }
+  } catch (error) {
+    alert('Erro ao adicionar curso ao carrinho')
+  } finally {
+    addingToCart.value = false
+  }
+}
+
 const enrollInCourse = () => {
-  // Redirecionar para página de pagamento
-  router.push(`/payment/${course.value.id}`)
+  // Add to cart first, then go to checkout
+  addToCart().then(() => {
+    router.push('/checkout')
+  })
 }
 
 onMounted(() => {
