@@ -157,7 +157,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -192,7 +192,7 @@ const formatDateTime = (dateTime) => {
 
 const loadCourse = async () => {
   try {
-    const response = await axios.get(`/api/courses/${route.params.id}`)
+    const response = await api.get(`/courses/${route.params.id}`)
     if (response.data.success) {
       course.value = response.data.data
     }
