@@ -18,6 +18,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import EnrollmentsView from '@/views/EnrollmentsView.vue'
 import GetnetTestView from '@/views/GetnetTestView.vue'
 import AsaasTestView from '@/views/AsaasTestView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes = [
   {
@@ -118,6 +119,12 @@ const routes = [
     name: 'asaas-test',
     component: AsaasTestView,
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  // Catch-all 404 route - must be last
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: NotFoundView
   }
 ]
 
